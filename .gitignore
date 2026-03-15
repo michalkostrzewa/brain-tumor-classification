@@ -1,0 +1,9 @@
+ai_env/
+
+BrainTumorData/
+
+.DS_Store
+
+moj_model_vgg16.pth
+
+Wymagania dotyczące projektu z przedmiotu.pdf
