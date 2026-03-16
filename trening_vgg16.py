@@ -39,8 +39,11 @@ model = models.vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
 for param in model.parameters():
     param.requires_grad = False
 
-# Fine-Tuning dla VGG16: Odmrażamy cały blok klasyfikatora (wszystkie warstwy gęste na końcu)
-# To pozwoli VGG16 lepiej zrozumieć wysoką rozdzielczość medyczną
+# GŁĘBOKI FINE-TUNING: Odmrażamy "oczy" VGG16 (od warstwy 24 w górę) - TEGO BRAKOWAŁO!
+for param in model.features[24:].parameters():
+    param.requires_grad = True
+
+# Odmrażamy cały blok klasyfikatora
 for param in model.classifier.parameters():
     param.requires_grad = True
 
@@ -59,13 +62,14 @@ model = model.to(device)
 # SYSTEM KAR (Class Weights) - Waga 3.0 dla 'glioma', 1.0 dla reszty
 # Uwaga: Musisz się upewnić, że 'glioma' to rzeczywiście klasa o indeksie 0 w dataset.classes
 # W standardowym datasecie Kaggle: 0-glioma, 1-meningioma, 2-notumor, 3-pituitary
-wagi_klas = torch.tensor([3.0, 1.0, 2.0, 1.0]).to(device)
+wagi_klas = torch.tensor([3.0, 1.0, 1.0, 1.0]).to(device)
 criterion = nn.CrossEntropyLoss(weight=wagi_klas)
 
-# Optymalizator z systemem weight_decay (kara za zbyt dużą pewność siebie)
-# Uczymy cały blok klasyfikatora (classifier) z wyznaczonym Learning Rate
-optimizer = optim.Adam(model.classifier.parameters(), lr=1e-4, weight_decay=1e-4)
-
+# ZMIANA W OPTYMALIZATORZE: Uczymy "oczy" bardzo powoli (1e-5), a klasyfikator normalnie (1e-4)
+optimizer = optim.Adam([
+    {'params': model.features[24:].parameters(), 'lr': 1e-5},
+    {'params': model.classifier.parameters(), 'lr': 1e-4}
+], weight_decay=1e-4)
 # 5. Pętla ucząca
 epochs = 20 # Zwiększono do 20, podobnie jak w ResNet18
 print(f"Rozpoczynamy trening na {epochs} epok!")

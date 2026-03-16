@@ -17,8 +17,8 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-test_dir = './BrainTumorData/Testing'
+# test_dir = './BrainTumorData/Testing'
+test_dir = '../archive/Testing'
 test_dataset = datasets.ImageFolder(test_dir, transform=transform)
 test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=32, shuffle=False)
 
@@ -33,7 +33,8 @@ model.fc = nn.Sequential(
 )
 
 # Wczytujemy "mózg" zapisany z ostatniego, najlepszego treningu
-model.load_state_dict(torch.load('moj_model_resnet18.pth', weights_only=True))
+model.load_state_dict(torch.load('moj_model_resnet18_512.pth', weights_only=True))
+# model.load_state_dict(torch.load('moj_model_resnet18.pth', weights_only=True))
 model = model.to(device)
 model.eval()
 
